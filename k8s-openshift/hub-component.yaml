@@ -1,0 +1,81 @@
+---
+version: 1
+kind: component
+meta:
+  name: k8s-openshift
+  brief: OpenShift Kubernetes Adapter
+  source:
+    dir: ../../components/k8s-openshift
+
+requires:
+  - aws
+provides:
+  - kubernetes  
+
+lifecycle:
+  readyConditions:
+    - dns: ${kubernetes.api.endpoint}
+      url: https://${kubernetes.api.endpoint}/api/v1
+
+parameters:
+  - name: cloud.kind
+    value: aws
+  - name: kubernetes.flavor
+    value: openshift
+  - name: cloud.region    
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: kubernetes.api
+    parameters:
+    - name: endpoint
+      env: API_ENDPOINT
+    - name: token
+      env: OPENSHIFT_TOKEN
+    - name: namespace
+      value: kube-system
+    - name: caCert
+      empty: allow
+      env: CA_CERT  
+  - name: kubernetes.sa
+    parameters:
+    - name: name
+      env: ASI_ACCOUNT
+      value: superadmin
+    - name: role
+      env: ASI_ROLE
+      value: cluster-admin
+  - name: terraform.bucket
+    parameters:
+    - name: name
+      env: STATE_BUCKET
+    - name: region
+      env: STATE_REGION
+
+outputs:
+  - name: dns.domain
+  - name: dns.name
+    fromTfVar: dns_name
+  - name: dns.baseDomain
+    fromTfVar: dns_base_domain
+  - name: cloud.region
+    fromTfVar: region
+  - name: cloud.availabilityZone
+    fromTfVar: zone
+  - name: cloud.vpc.id
+    fromTfVar: vpc
+  - name: cloud.vpc.cidr
+    fromTfVar: vpc_cidr_block
+  - name: cloud.vpc.worker.subnet.id
+    fromTfVar: worker_subnet_id
+  - name: cloud.vpc.worker.sg.id
+    fromTfVar: worker_sg_id
+  - name: kubernetes.flavor
+  - name: kubernetes.api.endpoint
+  - name: kubernetes.api.caCert
+  - name: kubernetes.api.token
+    fromTfVar: sa_token
+
+templates:
+  files:
+    - "*.template"
+    

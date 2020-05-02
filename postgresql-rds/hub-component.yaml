@@ -1,0 +1,86 @@
+---
+version: 1
+kind: component
+meta:
+  name: postgresql-rds
+  kind: postgresql
+  title: Amazon RDS
+  brief: PostgreSQL database
+  description: >
+    "Amazon RDS is a managed relational database service with a choice of six popular database engines:"
+    Amazon Aurora, PostgreSQL, MySQL, MariaDB, Oracle, and Microsoft SQL Server.
+  category: AWS Native
+  version: 12.2
+  maturity: ga
+  source:
+    dir: ../../components/postgresql-rds
+
+requires:
+- aws
+
+provides:
+- postgresql
+
+parameters:
+- name: dns.domain
+  env: DOMAIN_NAME
+- name: cloud.region
+  env: AWS_DEFAULT_REGION
+- name: cloud.vpc.id
+  env: TF_VAR_vpc_id
+  empty: allow
+- name: component.postgresql
+  parameters:
+  - name: name
+    brief: Component name
+    value: ${dns.domain}-${dns.name}-${hub.componentName}
+    env: COMPONENT_NAME
+  - name: rds.name
+    brief: RDS database instance name
+    value: ${dns.name}-${hub.componentName}
+    env: TF_VAR_rds_name
+  - name: database
+    value: agilestacks
+    env: TF_VAR_database_name
+  - name: user
+    value: postgres
+    env: TF_VAR_database_username
+  - name: password
+    env: TF_VAR_database_password
+  - name: rds.instanceType
+    value: db.t2.micro
+    env: TF_VAR_instance_type
+  - name: rds.version
+    value: "12.2"
+    env: TF_VAR_engine_version
+  - name: rds.snapshot
+    empty: allow
+    env: TF_VAR_snapshot_identifier
+  - name: rds.multiAz
+    value: false
+    env: TF_VAR_multi_availability_zone
+  - name: rds.skipFinalSnapshot
+    value: true
+    env: TF_VAR_skip_final_snapshot
+  - name: rds.storageEncrypted
+    value: false
+    env: TF_VAR_storage_encrypted
+  - name: rds.finalSnapshotName
+    value: ${dns.name}-${hub.componentName}-final
+    env: TF_VAR_final_snapshot_identifier
+- name: terraform.bucket.name
+  env: STATE_BUCKET
+- name: terraform.bucket.region
+  env: STATE_REGION
+
+outputs:
+- name: component.postgresql.host
+  fromTfVar: hostname
+- name: component.postgresql.port
+  fromTfVar: port
+- name: component.postgresql.database
+  fromTfVar: name
+- name: component.postgresql.user
+  fromTfVar: username
+# cannot be captured securely from Terraform outputs
+- name: component.postgresql.password

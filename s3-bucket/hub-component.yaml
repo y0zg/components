@@ -1,0 +1,64 @@
+---
+version: 1
+kind: component
+meta:
+  name: s3-bucket
+  title: S3 Bucket
+  brief: Simple storage bucket
+  description: >
+    Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading
+    scalability, data availability, security, and performance. This means customers of all sizes and industries
+    can use it to store and protect any amount of data for a range of use cases, such as websites, mobile applications,
+    backup and restore, archive, enterprise applications, IoT devices, and big data analytics.
+  category: AWS Native
+  maturity: beta
+  source:
+    dir: .
+
+requires:
+- aws
+provides:
+- s3-bucket
+
+parameters:
+- name: terraform.bucket.name
+  env: STATE_BUCKET
+- name: terraform.bucket.region
+  env: STATE_REGION
+- name: cloud.region
+  env: AWS_DEFAULT_REGION
+- name: dns.domain
+  env:  DOMAIN_NAME
+- name: component.bucket
+  parameters:
+  - name: name
+    value: bucket.${dns.domain}
+    env: COMPONENT_NAME
+  - name: acl
+    value: private
+    env: ACL
+  - name: reclaim
+    brief: allowed values - retain (instruct not to delete bucket) or delete (default value)
+    value: delete
+    env: RECLAIM
+
+outputs:
+- name: component.s3.arn
+  fromTfVar: arn
+- name: component.s3.domain
+  fromTfVar: domain
+- name: component.s3.endpoint
+  fromTfVar: endpoint
+- name: component.s3.url
+  brief: URL to the AWS web console with bucket
+  fromTfVar: console_url
+- name: component.bucket.kind
+  value: s3
+- name: component.bucket.name
+  fromTfVar: bucket
+- name: component.bucket.endpoint
+  fromTfVar: endpoint
+- name: component.bucket.fqdn
+  fromTfVar: fqdn
+- name: component.bucket.region
+  fromTfVar: region

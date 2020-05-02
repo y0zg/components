@@ -1,0 +1,32 @@
+{{- $tableName := .Values.hyperTableName -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tsdb-tablespaces
+data:
+  init_tablespaces.sh: |
+    #!/bin/bash
+  
+    #give these to pg
+    echo "changing perms of /mnt/data"
+    chown -R 70:70 /mnt/data/
+    # wait for the metrics hypertable to be created
+    echo "checking for metrics table"
+    psql -h localhost -c "SELECT 'public.{{- $tableName -}}_values'::regclass"
+    while [ $? -ne 0 ]; do
+      echo "waiting for metrics table"
+      sleep 2
+      psql -h localhost -c "SELECT 'public.{{- $tableName -}}_values'::regclass"
+    done
+   
+    echo "waiting a bit longer for startup: 5 seconds"
+    sleep 5
+    echo "metrics table present, attaching tablespaces"
+    #then map in the tablespaces
+{{- range $name := .Values.persistence.tablespaces.disks }}
+      psql -h localhost -c "CREATE TABLESPACE {{ $name }} LOCATION '/mnt/data/{{- $name -}}'" || true
+      psql -h localhost -c "SELECT attach_tablespace('{{- $name -}}', '{{- $tableName -}}_values', if_not_attached => true)"
+{{- end }}
+    echo "Done!"
+
+    sleep infinity

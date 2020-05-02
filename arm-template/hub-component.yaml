@@ -1,0 +1,36 @@
+---
+version: 1
+kind: component
+meta:
+  name: arm-template
+  title: Azure Resource Manager
+  brief: Infrastructure service
+  description: >
+    Azure Resource Manager is the deployment and management service for Azure.
+    It provides a consistent management layer that enables you to create, update,
+    and delete resources in your Azure subscription. You can use its access control,
+    auditing, and tagging features to secure and organize your resources after deployment.
+  category: Azure Native
+  maturity: beta
+  source:
+    dir: ../../components/arm-template
+
+requires:
+- azure
+
+parameters:
+- name: dns.domain
+- name: cloud.region
+- name: cloud.azureResourceGroupName
+  env: RESOURCE_GROUP_NAME
+- name: component.arm-template.name
+  value: ${dns.domain}-${hub.componentName}
+  env: COMPONENT_NAME
+
+outputs:
+- name: component.arm-template.bucket
+  fromTfVar: bucket
+
+templates:
+  files:
+  - '*.template'

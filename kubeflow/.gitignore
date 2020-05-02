@@ -1,0 +1,8 @@
+ks-app/
+oidc-crd.yaml
+bootstrapper-rbac.yaml
+bootstrapper-install.yaml
+bootstrapper-uninstall.yaml
+default-storage-class.yaml
+!kubeflow-v0.5.1/kubeflow/jupyter/ui/default/config.yaml
+!kubeflow-v0.5.1/kubeflow/jupyter/config.yaml

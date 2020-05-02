@@ -1,0 +1,55 @@
+---
+version: 1
+kind: component
+meta:
+  name: ecr
+  title: Amazon ECR
+  brief: Elastic container registry
+  description: >
+    Amazon EC2 Container Registry (ECR) is a fully-managed Docker container registry that makes it easy for
+    developers to store, manage, and deploy Docker container images.
+  category: AWS Native
+  maturity: ga
+  source:
+    dir: ../../components/ecr
+
+requires:
+- aws
+provides:
+- ecr
+- docker-registry
+
+parameters:
+- name: component.ecr
+  parameters:
+  - name: name
+    value: ${dns.domain}/${dns.name}/${hub.componentName}
+    env: COMPONENT_NAME
+- name: cloud.region
+  env: AWS_DEFAULT_REGION
+- name: dns.domain
+  env:  DOMAIN_NAME
+- name: terraform.bucket
+  parameters:
+  - name: name
+    env: STATE_BUCKET
+  - name: region
+    env: STATE_REGION
+
+outputs:
+- name: component.ecr.image
+  brief: Docker image
+  fromTfVar: image
+- name: component.ecr.url
+  brief: ECR Console URL
+  fromTfVar: console_url
+- name: component.docker.registry.kind
+  value: ecr
+- name: component.docker.registry.image
+  brief: Docker image
+  fromTfVar: image
+- name: component.docker.registry.url
+  brief: ECR Registry URL
+  fromTfVar: host
+- name: component.docker.auth.host
+  fromTfVar: host

@@ -1,0 +1,104 @@
+---
+version: 1
+kind: component
+meta:
+  name: k8s-mixed-worker-nodes
+  title: Worker pool
+  brief: Kubernetes worker nodes pool
+  description: >
+    A worker nodes pool is a group of nodes within a cluster that all have the same configuration.
+    A pool can contain only a single node or many nodes.
+  source:
+    dir: ../../components/k8s-mixed-worker-nodes
+
+requires:
+  - kubernetes
+provides:
+  - k8s-mixed-worker-nodes
+
+parameters:
+  - name: cloud.region
+    env: AWS_DEFAULT_REGION
+  - name: cloud.sshKey
+    env: TF_VAR_keypair
+  - name: terraform.bucket.name
+    env: TF_VAR_s3_bucket
+  - name: terraform.bucket.region
+    env: TF_VAR_s3_bucket_region
+  - name: dns.domain
+    env: TF_VAR_domain_name
+
+  - name: cloud.vpc.worker.subnet.id
+    env: SUBNET_ID
+  - name: cloud.vpc.worker.subnet.ids
+    env: SUBNET_IDS
+  - name: cloud.vpc.worker.sg.id
+    env: SG_IDS
+  - name: cloud.iam.worker.instanceProfile
+    env: TF_VAR_instance_profile
+  - name: cloud.ec2.worker.ignitionProfileS3
+    env: TF_VAR_bootstrap_script_key
+    empty: allow
+  - name: kubernetes.serviceDnsIp
+    env: TF_VAR_service_dns_ip
+    value: 10.0.3.10
+
+  - name: component.worker-pool
+    parameters:
+    - name: shortName
+      env: SHORT_NAME
+    - name: name
+      env: TF_VAR_name
+      value: ${component.worker-pool.shortName}-${dns.domain}
+    - name: labels
+      empty: allow
+    - name: instance.size
+      env: INSTANCE_SIZE
+    - name: count
+      value: 1
+      env: TF_VAR_pool_count
+    - name: maxCount
+      value: ${component.worker-pool.count}
+      env: TF_VAR_pool_max_count
+    - name: volume.size
+      env: TF_VAR_root_volume_size
+      value: 50
+    - name: autoscaling.enabled
+      value: false
+      env: TF_VAR_autoscaling_enabled
+    - name: volume.type
+      env: TF_VAR_root_volume_type
+      value: gp2
+    - name: volume.iops
+      env: TF_VAR_root_volume_iops
+      value: 100
+
+  - name: component.worker-pool.mixed
+    parameters:
+    - name: spotAllocationStrategy
+      env: TF_VAR_allocation_strategy
+      value: capacity-optimized
+    - name: onDemandBaseCapacity
+      env: TF_VAR_on_demand_base_capacity
+      value: 0
+    - name: linuxVersion
+      env: TF_VAR_linux_version
+      value: "*"
+    - name: vmType
+      env: TF_VAR_virtualization_type
+      value: hvm
+    - name: ephemeralStorage.size
+      env: TF_VAR_ephemeral_storage_size
+      value: 200
+    - name: ephemeralStorage.type
+      env: TF_VAR_ephemeral_storage_type
+      value: gp2
+    - name: ephemeralStorage.iops
+      env: TF_VAR_ephemeral_storage_iops
+      value: 100
+
+outputs:
+- name: component.k8s-mixed-worker-nodes.bootstrapScriptS3
+  fromTfVar: bootstrap_script_s3
+- name: component.k8s-mixed-worker-nodes.vmType
+  value: "${component.worker-pool.mixed.vmType}"

@@ -1,0 +1,106 @@
+---
+version: 1
+kind: component
+meta:
+  name: redis
+  title: Redis
+  brief: Data structures server
+  description: Redis is an open source, in-memory data structure store, used as a database, cache and message broker.
+  category: App Stack
+  version: 4.0.13
+  maturity: ga
+  license: BSD
+  source:
+      dir: ../../components/redis
+
+requires:
+  - kubernetes
+  - helm
+  - tiller
+
+parameters:
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: component.redis
+    parameters:
+    - name: persistence
+      brief: true if persistence enabled
+      value: "true"
+    - name: storageClass
+      value: default
+    - name: volumeSize
+      value: 8Gi
+    - name: metrics.enabled
+      value: false
+    - name: serviceMonitor.enabled
+      value: false
+    - name: serviceMonitor.namespace
+      value: prometheus
+    - name: cluster.enabled
+      value: false
+    - name: cluster.slaveCount
+      value: 1
+    - name: networkPolicy
+      value: false
+    - name: usePassword
+      value: true
+    - name: password
+      empty: allow
+    - name: namespace
+      env: NAMESPACE
+      value: redis
+    - name: name
+      env: COMPONENT_NAME
+      value: redis-${dns.name}-${hub.componentName}
+    - name: image.repository
+      value: bitnami/redis
+    - name: image.tag
+      value: 5.0.5
+    - name: requests.memory
+      value: 256Mi
+    - name: requests.cpu
+      value: 100m
+    - name: ha
+      parameters:
+      - name: enabled
+        value: "false"
+        env: HA_ENABLED
+      - name: image.tag
+        value: 5.0.3-alpine
+      - name: replicas
+        value: 3
+      - name: auth
+        value: false
+      - name: password
+        empty: allow
+      - name: master.requests.memory
+        value: 200Mi
+      - name: master.requests.cpu
+        value: 100m
+      - name: master.limits.memory
+        value: 700Mi
+      - name: sentinel.requests.memory
+        value: 200Mi
+      - name: sentinel.requests.cpu
+        value: 100m
+      - name: sentinel.limits.memory
+        value: 200Mi
+      - name: chart.version
+        value: 3.3.0
+        env: HA_CHART_VERSION
+    - name: chart.version
+      value: 9.1.12
+      env: CHART_VERSION
+outputs:
+  - name: component.redis.host
+    value: ${component.redis.name}-redis-master.${component.redis.namespace}.svc.cluster.local
+  - name: component.redis.port
+    value: "6379"
+  - name: component.redis.url
+    value: redis://${component.redis.name}-redis-master.${component.redis.namespace}.svc.cluster.local:6379
+  - name: component.redis.password
+    fromTfVar: password/base64
+
+templates:
+  files:
+    - "*.template"

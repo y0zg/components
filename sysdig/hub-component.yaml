@@ -1,0 +1,65 @@
+---
+version: 1
+kind: component
+meta:
+  name: sysdig
+  title: Sysdig
+  brief: Container monitoring
+  description: >
+    "Sysdig is open source, system-level exploration: capture system state and activity from a running Linux instance,"
+    then save, filter and analyze. Sysdig is scriptable in Lua and
+    includes a command line interface and a powerful interactive UI, csysdig, that runs in your terminal.
+    Think of sysdig as strace + tcpdump + htop + iftop + lsof + transaction tracing + awesome sauce.
+    With state of the art container visibility on top.
+  category: Monitoring
+  version: 0.93.0
+  maturity: beta
+  license:  commercial
+  source:
+      dir: ../../components/sysdig
+
+requires:
+  - kubernetes
+provides:
+  - sysdig
+
+parameters:
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: component.sysdig
+    parameters:
+    - name:  name
+      value: sysdig
+      env:   COMPONENT_NAME
+    - name:  version
+      brief: sysdig agent version
+      value: 0.93.0
+    - name:  namespace
+      brief: Kubernetes namespace to install into
+      value: sysdig
+      env:   NAMESPACE
+    - name: clusterName
+      value: ${dns.domain}
+    - name:  rbac.install
+      value: true
+    - name:  license
+      value: "83c6bb73-95b4-44f1-9729-bfbf7d1726db"
+    - name:  agentTags
+      brief: Key-value agent tags following the format "key:val,key2:val2"
+      empty: allow
+    - name:  resources.limits.memory
+      value: 1536Mi
+    - name:  resources.requests.memory
+      value: 512Mi
+    - name:  resources.limits.cpu
+      value: 2000m
+    - name:  resources.requests.cpu
+      value: 600m
+
+outputs:
+  - name: component.sysdig.url
+    value: https://app.sysdigcloud.com/#/openIdAuthentication
+
+templates:
+  files:
+    - "*.template"

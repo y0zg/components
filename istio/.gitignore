@@ -1,0 +1,7 @@
+!values-*.yaml
+/.helm
+/values.yaml
+/default-gateway.yaml
+/values-1.2.2.yaml
+.terraform
+

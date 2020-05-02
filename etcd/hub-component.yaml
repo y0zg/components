@@ -1,0 +1,102 @@
+---
+version: 1
+kind: component
+meta:
+  name: etcd
+  title: etcd
+  brief: Кey/value store
+  description: >
+    Distributed reliable key-value store for the most critical data of a distributed system.
+  category: App Stack
+  version: 3.2.26
+  maturity: ga
+  license: Apache 2.0
+  source:
+      dir: ../../components/etcd
+
+requires:
+  - kubernetes
+  - helm
+  - tiller
+provides:
+  - etcd
+
+lifecycle:
+  verbs:
+    - deploy
+    - undeploy
+    - backup
+    - restore
+
+parameters:
+  - name: cloud.region
+    env:  AWS_DEFAULT_REGION
+    empty: allow
+  - name: dns.domain
+    env:  DOMAIN_NAME
+  - name: terraform.bucket.name
+    empty: allow
+  - name: terraform.bucket.region
+    empty: allow
+  - name: component.etcd
+    parameters:
+    - name:  namespace
+      brief: Kubernetes namespace to install into
+      value: etcd-cluster
+      env:   NAMESPACE
+    - name:  name
+      value: etcd-cluster
+      env:   COMPONENT_NAME
+    - name:  operator.version
+      brief: etcd-operator version
+      value: v0.9.4.1
+    - name:  cluster.enabled
+      brief: Start etcd cluster
+      value: true
+      env:   CLUSTER_ENABLED
+    - name:  cluster.size
+      value: 3
+      env:   ETCD_CLUSTER_SIZE
+    - name:  cluster.version
+      brief: etcd version
+      value: v3.2.26
+      env:   ETCD_VERSION
+    - name:  cluster.heartbeatInterval
+      value: 200
+    - name:  cluster.electionTimeout
+      value: 2000
+    - name:  backup.bucket
+      value: ${terraform.bucket.name}
+      env:   BACKUP_BUCKET
+      empty: allow
+    - name:  backup.region
+      value: ${terraform.bucket.region}
+      env:   BACKUP_REGION
+      empty: allow
+    - name:  backup.enabled
+      brief: Enable backups
+      value: false
+      env:   BACKUP_ENABLED
+      empty: allow
+    - name:  restore.enabled
+      brief: Enable restore
+      value: false
+      env:   RESTORE_ENABLED
+    - name:  cluster.awssecret
+      value: awsetcd
+      env:   AWS_SECRET_NAME
+    - name:  cluster.backupInterval
+      value: 7200
+    - name:  cluster.maxBackups
+      value: 24
+    - name:  snapshot
+      empty: allow
+      env:   RESTORE_SNAPSHOT
+
+outputs:
+  - name: component.etcd.endpoint
+    value: http://${component.etcd.name}-client.${component.etcd.namespace}.svc.cluster.local:2379
+
+templates:
+  files:
+    - "*.template"

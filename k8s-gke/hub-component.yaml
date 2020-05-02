@@ -1,0 +1,73 @@
+---
+version: 1
+kind: component
+meta:
+  name: k8s-gke
+  brief: Google GKE import
+  source:
+      dir: ../../components/k8s-gke
+
+requires:
+  - gcp
+provides:
+  - kubernetes
+
+lifecycle:
+  verbs:
+    - deploy
+    - undeploy
+  readyConditions:
+    - dns: api.${dns.domain}
+      url: https://api.${dns.domain}
+  options:
+    random:
+      bytes: 2048
+
+parameters:
+  - name: kubernetes.flavor
+    value: gke
+  - name: kubernetes.gke.cluster
+    env: CLUSTER_NAME
+    value: ${dns.name}
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: cloud.region
+    empty: allow
+    env: REGION
+  - name: cloud.availabilityZone
+    empty: allow
+    env: ZONE
+  - name: cloud.gcpProjectId
+    env: TF_VAR_project
+
+  - name: terraform.bucket.name
+    env: STATE_BUCKET
+  - name: terraform.bucket.region
+    env: STATE_REGION
+
+  - name: component.kubernetes
+    parameters:
+    - name: serviceaccount
+      value: asi
+      env: SERVICE_ACCOUNT
+
+outputs:
+  - name: cloud.kind
+    value: gcp
+  - name: cloud.region
+    fromTfVar: region
+  - name: cloud.availabilityZone
+    fromTfVar: zone
+  - name: kubernetes.gke.cluster
+  - name: dns.domain
+  - name: dns.name
+    fromTfVar: dns_name
+  - name: dns.baseDomain
+    fromTfVar: dns_base_domain
+  - name: kubernetes.flavor
+  - name: kubernetes.api.endpoint
+    fromTfVar: endpoint
+  - name: kubernetes.api.caCert
+    fromTfVar: api_ca_crt
+  - name: kubernetes.api.token
+    fromTfVar: token/base64

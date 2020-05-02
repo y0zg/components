@@ -1,0 +1,83 @@
+---
+version: 1
+kind: component
+meta:
+  name: eks-worker-nodes
+  brief: EKS worker nodes pool
+  source:
+    dir: ../../components/eks-worker-nodes
+
+requires:
+  - kubernetes
+provides:
+  - eks-worker-nodes
+
+parameters:
+  - name: cloud.region
+    env: AWS_DEFAULT_REGION
+  - name: cloud.sshKey
+    env: TF_VAR_keypair
+  - name: terraform.bucket.name
+    env: STATE_BUCKET
+  - name: terraform.bucket.region
+    env: STATE_REGION
+  - name: dns.domain
+    env: DOMAIN_NAME
+
+  - name: kubernetes.eks.cluster
+    env: TF_VAR_cluster_name
+  - name: cloud.vpc.worker.subnet.ids
+    env: SUBNET_IDS
+  - name: cloud.vpc.worker.sg.id
+    env: SG_IDS
+  - name: cloud.iam.worker.instanceProfile
+    env: TF_VAR_instance_profile
+  - name: cloud.role.worker
+    env: TF_VAR_role
+
+  - name: component.worker-pool
+    parameters:
+    - name: shortName
+      value: ${hub.componentName}
+      env: TF_VAR_short_name
+    - name: name
+      value: ${component.worker-pool.shortName}-${dns.domain}
+      env: TF_VAR_name
+    - name: instance.size
+      env: TF_VAR_instance_type
+      value: r5.large
+    - name: autoscaling.enabled
+      value: false
+      env: TF_VAR_autoscaling_enabled
+    - name: count
+      value: 1
+      env: TF_VAR_pool_count
+    - name: maxCount
+      value: ${component.worker-pool.count}
+      env: TF_VAR_pool_max_count
+    - name: volume.size
+      env: TF_VAR_root_volume_size
+      value: 50
+    - name: volume.type
+      env: TF_VAR_root_volume_type
+      value: gp2
+    - name: volume.iops
+      env: TF_VAR_root_volume_iops
+      value: 100
+    - name: aws.spotPrice
+      env: TF_VAR_spot_price
+      empty: allow
+    - name: mixed
+      parameters:
+      - name: onDemandBaseCapacity
+        value: 0
+        env: TF_VAR_on_demand_base_capacity
+      - name: onDemandPercentageAboveBaseCapacity
+        value: 0
+        env: TF_VAR_on_demand_percentage_above_base_capacity
+      - name: spotAllocationStrategy
+        value: capacity-optimized
+        env: TF_VAR_spot_allocation_strategy
+      - name: spotInstancePools
+        value: 2
+        env: TF_VAR_spot_instance_pools

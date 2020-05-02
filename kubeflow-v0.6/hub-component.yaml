@@ -1,0 +1,74 @@
+---
+version: 1
+kind: component
+meta:
+  name: kubeflow
+  title: Kubeflow
+  brief: Machine learning
+  description: >
+    Project is dedicated to making deployments of machine learning (ML) workflows
+    on Kubernetes simple, portable and scalable.
+    Kubeflow goal is provide a straightforward way to deploy industry standard ML
+    components such as Tensorflow, Jupiter Notebook etc.
+  category: AI and Machine Learning
+  version: 0.6.2
+  maturity: alpha
+  licence: Apache 2.0
+  source:
+    dir: ../../components/kubeflow-v0.6
+
+requires:
+  - kubernetes
+  - ingress
+
+provides:
+  - kubeflow
+
+parameters:
+  - name: component.ingress.protocol
+  - name: component.dex.issuer
+  - name: component.acm.certificateArn
+    empty: allow
+    env: ACM_CERTIFICATE_ARN
+  - name: kubernetes.api.endpoint
+    env: K8S_API_SERVER
+  - name: terraform.bucket.name
+    env: STATE_BUCKET
+  - name: terraform.bucket.region
+    env: STATE_REGION
+  - name: dns.domain
+    env: TF_VAR_domain_name
+  - name: dns.name
+    env: TF_VAR_name
+  - name: component.kubeflow
+    parameters:
+      - name: name
+        value: kubeflow
+        env: TF_VAR_component
+      - name: namespace
+        value: kubeflow
+        env: KUBEFLOW_NS
+      - name: istio.namespace
+        value: istio-system
+        env: TF_VAR_namespace
+      - name: version
+        value: v0.6.2
+        env: KUBEFLOW_VERSION
+      - name: manifests.git
+        value: 3e85b3c83de12fed7d675151d0d4f8474eb04790
+        env: KUBEFLOW_COMMIT
+      - name: urlPrefix
+        value: kubeflow.svc
+        env: TF_VAR_url_prefix
+      - name: kubernetes.kubeconfigContext
+        value: ${dns.domain}
+        env: TF_VAR_kubeconfig_context
+
+outputs:
+  - name: component.kubeflow.url
+    brief: Kubeflow Central Dashboard
+    value: ${component.ingress.protocol}://${component.kubeflow.urlPrefix}.${dns.domain}/
+
+templates:
+  files:
+    - "*.template"

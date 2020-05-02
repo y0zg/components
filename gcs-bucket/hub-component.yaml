@@ -1,0 +1,53 @@
+---
+version: 1
+kind: component
+meta:
+  name: gcs-bucket
+  title: GCS Bucket
+  brief: Cloud storage
+  description: >
+    Cloud Storage allows world-wide storage and retrieval of any amount of data at any time.
+    You can use Cloud Storage for a range of scenarios including serving website content,
+    storing data for archival and disaster recovery, or distributing large data objects to
+    users via direct download.
+  category: GCP Native
+  maturity: beta
+  source:
+    dir: ../../components/gcs-bucket
+
+requires:
+- gcp
+
+parameters:
+- name: dns.domain
+  env: DOMAIN_NAME
+- name: cloud.gcpProjectId
+  env: TF_VAR_project
+
+- name: component.gcs
+  parameters:
+  - name: name
+    value: bucket.${dns.domain}
+    env: COMPONENT_NAME
+  - name: location
+    value: ${cloud.region}
+    env: TF_VAR_location
+
+- name: terraform.bucket
+  parameters:
+  - name: name
+    env: STATE_BUCKET
+  - name: region
+    env: STATE_REGION
+
+outputs:
+- name: component.gcs.bucket
+  fromTfVar: bucket
+- name: component.gcs.url
+  fromTfVar: url
+- name: component.gcs.consoleUrl
+  value: https://console.cloud.google.com/storage/browser/${component.gcs.bucket}/?project=${cloud.gcpProjectId}
+- name: component.bucket.kind
+  value: gcs
+- name: component.bucket.name
+  value: ${component.gcs.bucket}

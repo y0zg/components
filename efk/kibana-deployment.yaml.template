@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana-logging
+  namespace: ${component.efk.namespace}
+  labels:
+    k8s-app: kibana-logging
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: kibana-logging
+  template:
+    metadata:
+      labels:
+        k8s-app: kibana-logging
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
+    spec:
+      containers:
+      - name: kibana-logging
+        image: docker.elastic.co/kibana/kibana-oss:${component.efk.kibana.version}
+        resources:
+          limits:
+            cpu: 1000m
+          requests:
+            cpu: 100m
+        env:
+          - name: ELASTICSEARCH_HOSTS
+            valueFrom:
+              configMapKeyRef:
+                name: es-env
+                key: es-client-endpoint
+          - name: ELASTICSEARCH_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: es-secrets
+                key: es-username
+          - name: ELASTICSEARCH_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: es-secrets
+                key: es-password
+        volumeMounts:
+        - name: es-config
+          mountPath: /post-start-hook.sh
+          subPath: post-start-hook.sh
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/bash","/post-start-hook.sh"]
+        ports:
+        - containerPort: 5601
+          name: ui
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: ui
+          initialDelaySeconds: 5
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: ui
+          initialDelaySeconds: 5
+          timeoutSeconds: 10
+      volumes:
+      - name: es-config
+        configMap:
+          name: es-config

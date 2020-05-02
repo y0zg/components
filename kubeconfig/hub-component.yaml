@@ -1,0 +1,50 @@
+---
+version: 1
+kind: component
+meta:
+  name: kubeconfig
+  brief: Create Kubeconfig
+  source:
+      dir: ../../components/kubeconfig
+
+requires:
+  - kubernetes
+  - aws
+
+parameters:
+  - name: cloud.region
+    empty: allow
+    env: AWS_REGION
+  - name: terraform.bucket.name
+    env: STATE_BUCKET
+  - name: terraform.bucket.region
+    env: STATE_REGION
+  - name: component.kubeconfig.name
+    value: kubeconfig
+  - name: component.kubeconfig.s3.url
+    value: s3://${terraform.bucket.name}/${dns.domain}/${component.kubeconfig.name}/kubeconfig.yaml
+    empty: allow
+    env: S3_URL
+  - name: component.kubeconfig.s3.acl
+    value: private
+    env: S3_ACL
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: kubernetes.api
+    parameters:
+    - name: endpoint
+    - name: caCert
+    - name: clientCert
+    - name: clientKey
+    - name: namespace
+      value: kube-system
+
+outputs:
+- name: kubernetes.api.kubeconfig
+  fromTfVar: kubeconfig
+- name: component.kubeconfig.s3.url
+  brief: S3 url where it is possible to download a kubeconfig
+
+templates:
+  files:
+    - "*.template"

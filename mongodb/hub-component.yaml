@@ -1,0 +1,67 @@
+---
+version: 1
+kind: component
+meta:
+  name: mongodb
+  title: MongoDB
+  brief: Document database
+  description: >
+    MongoDB is a document database with the scalability and flexibility that you want with the
+    querying and indexing that you need.
+  category: App Stack
+  version: 4.2.6
+  maturity: beta
+  source:
+    dir: ../../components/mongodb
+
+requires:
+- kubernetes
+- helm
+- tiller
+provides:
+- mongodb
+
+parameters:
+- name: dns.domain
+  env: DOMAIN_NAME
+- name: cloud.kind
+  env: CLOUD_KIND
+- name: component.mongodb
+  parameters:
+  - name:  name
+    value: ${dns.name}-${hub.componentName}
+    env:   COMPONENT_NAME
+  - name:  namespace
+    value: mongodb
+    env:   NAMESPACE
+  - name:  user
+    value: mongouser
+  - name:  password
+    value: b0d41457fcac49689186667dbdfbef5f
+  - name:  database
+    value: mongodb
+  - name:  volumeSize
+    value: 8Gi
+  - name:  storageClass
+    value: default
+  - name:  port
+    value: 27017
+    env:   PORT
+  - name:  version
+    value: 4.2.6-debian-10-r13
+  - name:  chart.version
+    value: 7.13.0
+    env:   CHART_VERSION
+
+outputs:
+- name: component.mongodb.namespace
+- name: component.mongodb.host
+  value: ${component.mongodb.name}.${component.mongodb.namespace}.svc.cluster.local
+- name: component.mongodb.port
+- name: component.mongodb.user
+- name: component.mongodb.password
+- name: component.mongodb.database
+
+templates:
+  files:
+  - "*.template"

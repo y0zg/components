@@ -1,0 +1,11 @@
+/.terraform
+/.helm
+/charts
+/aws/values-acm.yaml
+/aws/values-tls.yaml
+/azure/values-tls.yaml
+/gcp/values-tls.yaml
+/hybrid/values-tls.yaml
+/values-dashboard.yaml
+/values-tls.yaml
+/values.yaml

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${component.cluster-autoscaler.name}
+  namespace: ${component.cluster-autoscaler.namespace}
+  labels:
+    app: ${component.cluster-autoscaler.name}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${component.cluster-autoscaler.name}
+  template:
+    metadata:
+      labels:
+        app: ${component.cluster-autoscaler.name}
+    spec:
+      serviceAccountName: ${component.cluster-autoscaler.name}
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      containers:
+        - image: gcr.io/google-containers/cluster-autoscaler:${component.cluster-autoscaler.version}
+          name: ${component.cluster-autoscaler.name}
+          resources:
+            limits:
+              cpu: 0
+              memory: 0
+            requests:
+              cpu: 0
+              memory: 0
+          command:
+            - ./cluster-autoscaler
+            - --v=4
+            - --stderrthreshold=info
+            - --cloud-provider=${cloud.kind}
+            - --skip-nodes-with-local-storage=false
+            - --expander=least-waste
+            - --node-group-auto-discovery=asg:tag=${component.cluster-autoscaler.asgTag}
+          env:
+            - name: AWS_REGION
+              value: ${cloud.region}

@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: px-ingress
+  namespace: kube-system
+  annotations:
+    agilestacks.com/stack-component: portworx
+spec:
+  rules:
+  - host: ${component.portworx.ingress.urlPrefix}.${component.ingress.ssoFqdn}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: px-lighthouse
+          servicePort: 80

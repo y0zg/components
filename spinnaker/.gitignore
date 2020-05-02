@@ -1,0 +1,4 @@
+/.terraform
+/.hub
+/*.yaml
+!/hub-component.yaml

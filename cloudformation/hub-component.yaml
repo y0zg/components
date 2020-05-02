@@ -1,0 +1,39 @@
+---
+version: 1
+kind: component
+meta:
+  name: cloudformation
+  title: AWS CloudFormation
+  brief: Infrastructure automation
+  description: >
+    AWS CloudFormation is an infrastructure automation service
+    that allows to create a collection of related AWS resources like
+    VPC, Auto Scaling groups, Amazon CloudWatch, etc.
+  category: AWS Native
+  maturity: ga
+  source:
+    dir: ../../components/cloudformation
+
+requires:
+  - aws
+
+lifecycle:
+  verbs: [deploy, undeploy, changeset]
+
+parameters:
+  - name: dns.name
+    env: NAME
+  - name: cloud.region
+    env: AWS_DEFAULT_REGION
+
+outputs:
+  - name: component.cloudformation.s3bucket.name
+    brief: S3 bucket name
+    fromTfVar: S3BucketName
+  - name: component.cloudformation.s3bucket.region
+    brief: S3 bucket region
+    value: ${cloud.region}
+
+templates:
+  files:
+    - "*.template"

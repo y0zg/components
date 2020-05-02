@@ -1,0 +1,118 @@
+---
+version: 1
+kind: component
+meta:
+  name: vault
+  title: Vault
+  brief: Manage Secrets and Protect Sensitive Data
+  description: >
+    Secure, store and tightly control access to tokens, passwords, certificates, encryption keys
+    for protecting secrets and other sensitive data using a UI, CLI, or HTTP API.
+  version: 1.3.2
+  maturity: ga
+  license: MPL 2.0
+  category: Security
+  icon: https://s3.amazonaws.com/hashicorp-marketing-web-assets/brand/Vault_VerticalLogo_FullColor.B1xPC0pSax.svg
+  source:
+    dir: ../../components/vault
+
+requires:
+  - kubernetes
+  - helm
+  - tiller
+provides:
+  - vault
+
+lifecycle:
+  verbs:
+    - deploy
+    - undeploy
+    - connect
+    - login
+    - disconnect
+    - seal
+    - unseal
+
+parameters:
+  - name: dns.domain
+    env: DOMAIN_NAME
+  - name: cloud.region
+    empty: allow
+  - name: component.ingress.fqdn
+  - name: component.etcd.endpoint
+    empty: allow
+    env: ETCD_ENDPOINT
+  - name: component.dynamodb.table
+    empty: allow
+    env: DYNAMODB_TABLE
+  - name: component.bucket.name
+    empty: allow
+    env: BUCKET_NAME
+  - name: component.bucket.kind
+    empty: allow
+    env: BUCKET_KIND
+  - name: component.vault
+    parameters:
+    - name:  name
+      value: vault
+      env:   COMPONENT_NAME
+    - name:  version
+      brief: Vault version
+      value: 1.3.2
+    - name:  image.repository
+      value: vault
+    - name:  image.pullPolicy
+      value: IfNotPresent
+    - name:  replicaCount
+      value: 1
+      env: REPLICAS
+    - name:  resources.requests.memory
+      value: "128Mi"
+    - name:  resources.limits.memory
+      value: "512Mi"
+    - name:  namespace
+      brief: Kubernetes namespace to install into
+      value: vault
+      env:   NAMESPACE
+    - name:  port
+      brief: Port to listen on
+      value: 8200
+      env:   VAULT_PORT
+    - name:  ingress.enabled
+      brief: Deploy ingress for vault
+      env:   INGRESS_ENABLED
+      value: false
+    - name:  ipaddress
+      value: "0.0.0.0"
+    - name:  tls.disabled
+      value: 1
+    - name:  etcd.api
+      value: "v3"
+    - name:  seal.keys
+      value: "5"
+      env:   SECRET_SHARES
+    - name:  seal.threshold
+      value: "3"
+      env:   SECRET_THRESHOLD
+    - name:  unseal.file
+      empty: allow
+
+outputs:
+- name: component.vault.endpoint
+  fromTfVar: vault_url
+- name: component.vault.token.root
+  fromTfVar: root_token
+- name: component.vault.unseal.key1
+  fromTfVar: unseal_key_1
+- name: component.vault.unseal.key2
+  fromTfVar: unseal_key_2
+- name: component.vault.unseal.key3
+  fromTfVar: unseal_key_3
+- name: component.vault.unseal.key4
+  fromTfVar: unseal_key_4
+- name: component.vault.unseal.key5
+  fromTfVar: unseal_key_5
+
+templates:
+  files:
+    - "*.template"

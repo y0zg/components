@@ -1,0 +1,107 @@
+---
+version: 1
+kind: component
+meta:
+  name: jenkins
+  title: Jenkins
+  brief: CI/CD server
+  description: >
+    The leading open source automation server, Jenkins provides
+    hundreds of plugins to support building, deploying and automating any project.
+  category: DevOps Stack
+  version: 2.164.3
+  maturity: ga
+  license: MIT
+  source:
+    dir: components/jenkins
+
+requires:
+  - kubernetes
+provides:
+  - jenkins
+  - ci
+
+parameters:
+- name: component.ingress
+  parameters:
+  - name: fqdn
+  - name: ssoFqdn
+  - name: protocol
+- name: component.jenkins
+  parameters:
+  - name: namespace
+    value: jenkins
+    env: NAMESPACE
+  - name: image
+    value: docker.io/agilestacks/jenkins:20190529-27fbf36
+  - name: admin.user
+    value: admin
+  - name: admin.password
+    value: secret
+  - name: serviceaccount.user
+    value: robot
+  - name: serviceaccount.password
+    value: supersecret
+  - name: wait.timeout
+    value: 300
+    env: TIMEOUT
+  - name: initGroovy.gitRepo
+    value: https://github.com/agilestacks/jenkins.git
+  - name: initGroovy.subPath
+    value: init.groovy.d
+  - name: operator.image
+    value: docker.io/agilestacks/jenkins-operator:stable
+  - name: operator.maxConcurrentReqsPerHost
+    value: 10
+- name: cloud.region
+  kind: user
+  env: AWS_DEFAULT_REGION
+- name: dns.domain
+  env: DOMAIN_NAME
+- name: terraform.bucket.name
+  env: STATE_BUCKET
+- name: terraform.bucket.region
+  env: STATE_REGION
+- name: component.bucket
+  parameters:
+  - name: kind
+    empty: allow
+    env: BUCKET_KIND
+  - name: name
+    empty: allow
+    env: BUCKET_NAME
+- name: component.ceph
+  parameters:
+  - name: nfs.pvc.storageclass
+    empty: allow
+    env: NFS_PVC_STORAGECLASS
+  - name: nfs.pvc.name
+    empty: allow
+    value: rook-nfs-pv-claim
+  - name: blockdevice.pvc.storageclass
+    empty: allow
+    env: BLOCKDEVICE_PVC_STORAGECLASS
+
+outputs:
+- name:  component.jenkins.serviceaccount.user
+  value: ${component.jenkins.serviceaccount.user}
+- name:  component.jenkins.serviceaccount.password
+  value: ${component.jenkins.serviceaccount.password}
+- name:  component.jenkins.internal.host
+  value: jenkins.${component.jenkins.namespace}.svc.cluster.local
+- name:  component.jenkins.internal.port
+  value: 8080
+- name:  component.jenkins.internal.endpoint
+  value: http://jenkins.${component.jenkins.namespace}.svc.cluster.local:8080
+- name:  component.jenkins.fqdn # for Spinnaker
+  value: ${component.jenkins.namespace}.${component.ingress.ssoFqdn}
+- name:  component.jenkins.url
+  value: ${component.ingress.protocol}://${component.jenkins.fqdn}
+- name:  component.jenkins.blueOcean.url
+  brief: Blue Ocean UI
+  value: ${component.ingress.protocol}://${component.jenkins.fqdn}/blue
+  icon: .hub/icons/jenkinsBlue.png
+
+templates:
+  files:
+    - "*.template"

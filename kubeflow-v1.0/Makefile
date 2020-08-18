@@ -2,6 +2,7 @@
 
 export KF_TARBALL         := https://github.com/kubeflow/manifests/tarball/v1.0.2
 # manifests-0.7-branch is a directory inside the tarball
+export KF_TARBALL_FILE    := .cache/kubeflow.tar
 export KF_REPO            := .cache/repo
 
 # export HUB_ASI_LOCAL_REPO := $(abspath kfrepo)
@@ -9,7 +10,7 @@ export HUB_DEX_URL        := http://dex.kube-system.svc.cluster.local:5556/dex
 LIBSONNET     := .cache/lib/kfctl.libsonnet
 LIBSONNET     += .cache/lib/utils.libsonnet
 
-kubectl       := kubectl -n "$(HUB_COMPONENT_NAMESPACE)"
+kubectl       := kubectl --context="$(HUB_DOMAIN_NAME)" --namespace="$(HUB_COMPONENT_NAMESPACE)"
 
 jq            := jq -cMr
 curl          := curl -qfSL --silent --create-dirs
@@ -27,14 +28,25 @@ kfctl := $(abspath bin/kfctl)
 export PATH := $(dir $(kfctl)):$(PATH)
 endif
 
+
+kubecontext: CURRENTT_CONTEXT := $(shell kubectl config get current-context)
+kubecontext:
+	@test "$(CURRENTT_CONTEXT)" == "$(HUB_DOMAIN_NAME)" \
+	|| echo As kfctl relays on kubectl\'s current context so we are to switch it to $(HUB_DOMAIN_NAME) \
+	&& kubectl config use-context "$(HUB_DOMAIN_NAME)"
+
 $(kfctl):
 	mkdir -p "$(@D)"
 	$(curl) "$(KFCTL_TARBALL)" | tar xz -C "$(@D)"
 	chmod +x "$@"
 
-$(KF_REPO):
+$(KF_TARBALL_FILE):
+	mkdir -p $(dir $@)
+	$(curl) "$(KF_TARBALL)" > "$@"
+
+$(KF_REPO): $(KF_TARBALL_FILE)
 	mkdir -p "$@"
-	$(curl) "$(KF_TARBALL)" | tar xf - -C "$@" --strip-components 1
+	tar xf - -C "$@" --strip-components 1 < $(KF_TARBALL_FILE)
 
 %.libsonnet:
 	@ mkdir -p $(@D)
@@ -58,11 +70,8 @@ $(KF_REPO):
 		exit 1; \
 	fi
 
-# patches/%: $(KF_REPO)
-# 	$(rsync) $@ $^/$* 
-# patch: OVERLAYS:=$(sort $(dir $(wildcard patches/**)))
 patch: $(KF_REPO)
-	$(rsync) $(abspath hack)/ $^
+	$(rsync) $(abspath ext)/ $^
 
 dex bucket:
 	$(MAKE) -C "$@"
@@ -79,7 +88,8 @@ apply delete: $(KF_APP)
 apply: namespace bucket
 apply build: $(KF_DEF)
 	$(kfctl) $@ -V -f "$<"
-	
+apply delete: kubecontext
+
 delete: $(KF_DEF) drop-finalizers
 	$(kfctl) $@ --delete_storage -V -f "$<"
 
@@ -88,12 +98,11 @@ drop-finalizers:
 		| jq '. | del(.spec.finalizers)' \
 		| $(kubectl) replace --raw "/api/v1/namespaces/$(HUB_COMPONENT_NAMESPACE)/finalize" -f -
 
-
 deploy: clean patch dex apply
 
 undeploy: SA:=$(shell $(kubectl) get serviceaccount -l 'app.kubernetes.io/part-of=kubeflow' -o name | xargs)
 undeploy: clean patch delete
-	$(kubectl) delete --all --force applications 
+	$(kubectl) delete --all --force applications
 	# $(kubectl) delete --all --force profiles
 	$(kubectl) delete --all --force validatingwebhookconfigurations
 	$(kubectl) delete --all --force mutatingwebhookconfigurations
@@ -140,13 +149,11 @@ wait_nons:
 
 clean:
 	rm -rf $(KF_DEF) $(KF_REPO) .cache $(KF_APP) $(LIBSONNET) kustomize .cache/kube
-	# rm -rf $(KF_DEF) kustomize $(LIBSONNET)
+
 
 .PHONY: deploy undeploy clean apply build delete wait wait_nons patch dex bucket
 .PRECIOUS: %.libsonnet $(kfctl) $(KF_DEF)
 .IGNORE: delete drop-finalizers cleanup-namespace oidc-delete dex bucket
+.INTERMEDIATE: $(KF_TARBALL_FILE)
 
 .DELETE_ON_ERROR: $(KF_DEF) $(KF_REPO)
-
-# cleanup-namespace: CRB:=$(shell $(kubectl) get clusterrolebindings -o json | \
-# 	$(jq) '.items[] | select(.subjects[]?.namespace=="kubeflow").metadata.name')
